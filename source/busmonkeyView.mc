@@ -70,6 +70,39 @@ class BusMonkeyModel
  		}
  		return true;
  	}
+ 	
+ 	var attempt = 0;
+ 	var url;
+ 	var callback;
+ 	
+ 	function handleResponse(responseCode, data)
+ 	{
+ 		if(responseCode == 200)
+ 		{
+ 			attempt = 0;
+ 			onReceiveRoute(responseCode, data);
+ 		}
+ 		else if(attempt < 5)
+ 		{
+ 			var s = Lang.format("$1$ received\nCode $2$\n$3$\nRetrying..", [data, responseCode, message]);
+ 			viewCB.invoke(s);
+ 			attempt++;
+ 			makeRequest(url, callback);
+ 		}
+ 		else
+ 		{
+ 			var s = Lang.format("$1$ received\nCode $2$\n$3$\nFailed.", [data, responseCode, message]);
+ 			viewCB.invoke(s);
+ 			attempt = 0;
+ 		}
+ 	}
+ 	
+ 	function makeRequest(u, c)
+ 	{
+ 		url = u;
+ 		callback = c;
+		Comm.makeJsonRequest(url, null, null, method(:handleResponse));
+ 	}
     
     function onReceiveRoute(responseCode, data)
     {
@@ -113,7 +146,7 @@ class BusMonkeyModel
      	var destination = "Kamppi";
 		var url = Lang.format(Config.url, [lat, lon, destination]);
 		Sys.println(url);
-		Comm.makeJsonRequest(url, null, null, method(:onReceiveRoute));
+		makeRequest(url, method(:onReceiveRoute));
     }
     
     function onPosition(data)
