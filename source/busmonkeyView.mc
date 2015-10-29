@@ -59,25 +59,13 @@ class BusMonkeyModel
  		}	
  	}
  	
- 	function isValid(data, responseCode, message)
- 	{
- 		viewCB.invoke(message);
- 		if(data == null || responseCode != 200)
- 		{
- 			var s = Lang.format("$1$ received\nCode $2$\n$3$", [data, responseCode, message]);
- 			viewCB.invoke(s);
- 			return false;
- 		}
- 		return true;
- 	}
- 	
  	var attempt = 0;
  	var url;
  	var callback;
  	
  	function handleResponse(responseCode, data)
  	{
- 		if(responseCode == 200)
+ 		if(responseCode == 200 && data != null)
  		{
  			attempt = 0;
  			onReceiveRoute(responseCode, data);
@@ -105,38 +93,35 @@ class BusMonkeyModel
  	}
     
     function onReceiveRoute(responseCode, data)
-    {
-    	if(isValid(data, responseCode, "onReceiveSourceGeocode"))
-	    {    	
-			var depTime = data["depTime"];
-				
-			var busLeavesAt = Calendar.moment({
-				:year => depTime.substring(0, 4).toNumber(),
-				:month => parseNumber(depTime.substring(4, 6)),
-				:day => parseNumber(depTime.substring(6, 8)),
-				:hour => parseNumber(depTime.substring(8, 10)),
-				:minute => parseNumber(depTime.substring(10, 12))});
-	
-			Sys.println(Lang.format("TimeZoneOffset $1$", [Sys.getClockTime().timeZoneOffset.toString()]));
-			Sys.println(Lang.format("LeavesAt $1$", [depTime]));
-			Sys.println(Lang.format("LeavesAtParsed $1$", [busLeavesAt.value().toString()]));
-			Sys.println(Lang.format("Now $1$", [Time.now().value().toString()]));
+    {	
+		var depTime = data["depTime"];
 			
-			var now = Time.now().add(new Time.Duration(Sys.getClockTime().timeZoneOffset));
+		var busLeavesAt = Calendar.moment({
+			:year => depTime.substring(0, 4).toNumber(),
+			:month => parseNumber(depTime.substring(4, 6)),
+			:day => parseNumber(depTime.substring(6, 8)),
+			:hour => parseNumber(depTime.substring(8, 10)),
+			:minute => parseNumber(depTime.substring(10, 12))});
 
-			var routeData = new Route();
+		Sys.println(Lang.format("TimeZoneOffset $1$", [Sys.getClockTime().timeZoneOffset.toString()]));
+		Sys.println(Lang.format("LeavesAt $1$", [depTime]));
+		Sys.println(Lang.format("LeavesAtParsed $1$", [busLeavesAt.value().toString()]));
+		Sys.println(Lang.format("Now $1$", [Time.now().value().toString()]));
+		
+		var now = Time.now().add(new Time.Duration(Sys.getClockTime().timeZoneOffset));
 
-			routeData.busLeavesIn = busLeavesAt.subtract(now).value();
-			routeData.stopName = data["stopName"];
-			routeData.stopShortCode = data["stopShortCode"];
-			routeData.distanceToStop = data["distanceToStop"];
-			routeData.walkTimeToStop = chopAtPoint(data["walkTimeToStop"].toString()).toNumber();
-			routeData.busCode = data["busCode"];
-			routeData.busLine = data["busLine"];
-			routeData.destinationName = data["destinationName"];
-			
-			viewCB.invoke(routeData);
-		}
+		var routeData = new Route();
+
+		routeData.busLeavesIn = busLeavesAt.subtract(now).value();
+		routeData.stopName = data["stopName"];
+		routeData.stopShortCode = data["stopShortCode"];
+		routeData.distanceToStop = data["distanceToStop"];
+		routeData.walkTimeToStop = chopAtPoint(data["walkTimeToStop"].toString()).toNumber();
+		routeData.busCode = data["busCode"];
+		routeData.busLine = data["busLine"];
+		routeData.destinationName = data["destinationName"];
+		
+		viewCB.invoke(routeData);
     }
     
     function reverseGeocode(lat, lon)
@@ -168,6 +153,7 @@ class BusMonkeyModel
     	
     	if(key == Ui.KEY_ENTER)
     	{
+    		var routeData = new Route();
         	routeData.stopName = "Maarinniitty";
 			routeData.stopShortCode = "E2072";
 			routeData.distanceToStop = "253";
@@ -181,9 +167,15 @@ class BusMonkeyModel
         }      
         if(key == Ui.KEY_ESC)
         {
-        	
+        	openMenu();
+        	return true;
         } 
         return false;
+    }
+    
+    function openMenu() 
+    {
+    	Ui.pushView(new Rez.Menus.MainMenu(), new MenuDelegate(), Ui.PRESS_TYPE_UP);
     }
 }
 
@@ -255,5 +247,20 @@ class BusMonkeyView extends Ui.View {
         Ui.requestUpdate();
         
     }
-
 }
+
+class MenuDelegate extends Ui.MenuInputDelegate
+{
+	function onMenuItem(item)
+	{
+		if (item == :item_1)
+		{
+			System.println("menu item 1");		
+		}
+		else if (item == :item_2)
+		{
+			System.println("menu item 2");
+		}
+	}
+}
+
