@@ -128,7 +128,9 @@ class BusMonkeyModel
     {
      	Sys.println("reverseGeocode");
      	viewCB.invoke(lat + "," + lon);
-     	var destination = "Kamppi";
+     	
+     	var destination = "Kamppi"; //getProperty("destinations")[0];
+     	
 		var url = Lang.format(Config.url, [lat, lon, destination]);
 		Sys.println(url);
 		makeRequest(url, method(:onReceiveRoute));
@@ -175,7 +177,11 @@ class BusMonkeyModel
     
     function openMenu() 
     {
-    	Ui.pushView(new Rez.Menus.MainMenu(), new MenuDelegate(), Ui.PRESS_TYPE_UP);
+    	var menu = new Rez.Menus.MainMenu();
+    	var destinations = 
+    	Ui.pushView(menu, new MenuDelegate(), Ui.PRESS_TYPE_UP);
+    	
+    	//Ui.pushView(new Ui.TextPicker(), new TPD(), Ui.PRESS_TYPE_UP);
     }
 }
 
@@ -249,18 +255,4 @@ class BusMonkeyView extends Ui.View {
     }
 }
 
-class MenuDelegate extends Ui.MenuInputDelegate
-{
-	function onMenuItem(item)
-	{
-		if (item == :item_1)
-		{
-			System.println("menu item 1");		
-		}
-		else if (item == :item_2)
-		{
-			System.println("menu item 2");
-		}
-	}
-}
 
