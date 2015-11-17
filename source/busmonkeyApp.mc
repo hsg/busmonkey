@@ -17,7 +17,11 @@ class busmonkeyApp extends App.AppBase {
         inputs = new Inputs(method(:onKey));
         
         //if not destinations type of dictionary, create new.
-        setProperty("destinations", {});
+		var dest = getProperty("destinations");
+		if(!(dest instanceof Dictionary))
+		{
+			setProperty("destinations", {});
+		}
     }
 
     //! onStop() is called when your application is exiting
@@ -42,39 +46,69 @@ class busmonkeyApp extends App.AppBase {
     function openMenu() 
     {
     	var menu = new Rez.Menus.MainMenu();
-    	var destinations = getProperty("destinations");
+    	var dest = getDestinations();
     	
-    	for(var i=0; i<destinations.size(); i++)
+    	for(var i=0; i<dest.size(); i++)
     	{
-    		menu.addItem(destinations.get(i), "d" + i);
+    		menu.addItem(dest[i], "d" + i);
     	}	
     	
-    	Ui.pushView(menu, new MenuDelegate(), Ui.PRESS_TYPE_UP);
+    	Ui.pushView(menu, new MenuDelegate(method(:addDestination), method(:getDestinations)), Ui.PRESS_TYPE_UP);
+    }
+    
+    function addDestination(d)
+    {
+    	var dest = getProperty("destinations");
+		dest.put(d, d);
+		setProperty("destinations", dest);
+    }
+    
+    function getDestinations()
+    {
+    	return getProperty("destinations").keys();
     }
 }
 
 class Picker extends Ui.TextPickerDelegate
 {
+	var addDestination;
+	var getDestinations;
+	
+	function initialize(addDest, getDest)
+	{
+		addDestination = addDest;
+		getDestinations = getDest;
+		System.println("hello2");
+	}
+	
 	function onTextEntered(text, changed)
 	{
 		System.println(text);
 		System.println(changed);
-		
-		var destinations = getProperty("destinations");
-		destinations.put(new [12]);
+		addDestination.invoke(text);
+		Ui.popView(Ui.PRESS_TYPE_UP);
 	}
 }
 
 class MenuDelegate extends Ui.MenuInputDelegate
 {
+
+	var addDestinations;
+	var getDestinations;
+	
+	function initialize(addDest, getDest)
+	{
+		addDestinations = addDest;
+		getDestinations = getDest;
+		System.println("hello");
+	}
+	
 	function onMenuItem(item)
 	{
 		if (item == :item_add_new)
 		{
-			System.println("add new");		
-			
-			Ui.pushView(new Ui.TextPicker(), new Picker(), Ui.PRESS_TYPE_UP);
-			
+			System.println("add new");				
+			Ui.pushView(new Ui.TextPicker(), new Picker(addDestinations, getDestinations), Ui.PRESS_TYPE_UP);
 		}
 		else if (item == :item_delete)
 		{

@@ -1,12 +1,11 @@
 <resources>
     <string id="AppName">BusMonkey</string>
 
-    <bitmap id="LauncherIcon" filename="images/launcher_icon.png" />
+    <bitmap id="LauncherIcon" filename="images/launcher_icon.png" ></bitmap>
     <bitmap id="id_monkey" filename="images/monkey.png" />
     
     <menu id="MainMenu">
-         <menu-item id="item_1">Item 1</menu-item>
-         <menu-item id="item_2">Item 2</menu-item>
+         <menu-item id="item_add_new">* Add new destination *</menu-item><menu-item id="item_delete">* Delete destination *</menu-item>
 	</menu>
 	
 </resources>
