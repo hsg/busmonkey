@@ -152,9 +152,10 @@ class BusMonkeyModel
      
     function onKey(key)
     {
-    	
+    	Sys.println("onKey");
     	if(key == Ui.KEY_ENTER)
     	{
+    		Sys.println("key_enter");
     		var routeData = new Route();
         	routeData.stopName = "Maarinniitty";
 			routeData.stopShortCode = "E2072";
@@ -166,22 +167,9 @@ class BusMonkeyModel
 			routeData.destinationName = "Kamppi";
 			viewCB.invoke(routeData);
 			return true;
-        }      
-        if(key == Ui.KEY_ESC)
-        {
-        	openMenu();
-        	return true;
-        } 
+        }
+        
         return false;
-    }
-    
-    function openMenu() 
-    {
-    	var menu = new Rez.Menus.MainMenu();
-    	var destinations = 
-    	Ui.pushView(menu, new MenuDelegate(), Ui.PRESS_TYPE_UP);
-    	
-    	//Ui.pushView(new Ui.TextPicker(), new TPD(), Ui.PRESS_TYPE_UP);
     }
 }
 

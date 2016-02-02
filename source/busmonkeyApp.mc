@@ -14,7 +14,7 @@ class busmonkeyApp extends App.AppBase {
     
     	view = new BusMonkeyView();    	
         model = new BusMonkeyModel(view.method(:onStuff));
-        inputs = new Inputs(method(:onKey));
+        inputs = new Inputs(method(:onKey), model.method(:onKey));
         
         //if not destinations type of dictionary, create new.
 		var dest = getProperty("destinations");
@@ -78,7 +78,7 @@ class Picker extends Ui.TextPickerDelegate
 	{
 		addDestination = addDest;
 		getDestinations = getDest;
-		System.println("hello2");
+		System.println("initialize picker");
 	}
 	
 	function onTextEntered(text, changed)
@@ -100,7 +100,7 @@ class MenuDelegate extends Ui.MenuInputDelegate
 	{
 		addDestinations = addDest;
 		getDestinations = getDest;
-		System.println("hello");
+		System.println("initialize menuDelegate");
 	}
 	
 	function onMenuItem(item)
@@ -124,15 +124,24 @@ class MenuDelegate extends Ui.MenuInputDelegate
 class Inputs extends Ui.InputDelegate
 {
 	var keyCB;
+	var modelKeyCB;
 	
-	function initialize(handler)
+	function initialize(handler, modelHandler)
 	{
 		keyCB = handler;
+		modelKeyCB = modelHandler;
 	}
 	
     function onKey(evt)
     {
     	Sys.println(evt.getKey());
-    	return keyCB.invoke(evt.getKey());
+    	if(evt == Ui.KEY_ESC)
+        {	
+        	return keyCB.invoke(evt.getKey());
+        }
+        else
+        {
+        	return modelKeyCB.invoke(evt.getKey());
+        }      	
     }
 }
