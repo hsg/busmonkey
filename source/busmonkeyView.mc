@@ -23,6 +23,7 @@ class Route
 	//var startCoordY;
 	var directionToWalk;
 	var currentDirection;
+	var validUntil;
 }
 
 function calculateCompass(d)
@@ -59,12 +60,14 @@ class BusMonkeyModel
 	
 	hidden var sourceCoords;
 	
+	hidden var lastRouteData;
+	
     function initialize(handler)
     {
     	Sys.println("Waiting for GPS");
     	viewCB = handler;
 		viewCB.invoke("Waiting for GPS");
-		Position.enableLocationEvents(Position.LOCATION_ONE_SHOT, method(:onPosition));
+		Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
     }
     
     function parseNumber(string)
@@ -125,9 +128,9 @@ class BusMonkeyModel
 		Comm.makeJsonRequest(url, null, null, method(:handleResponse));
  	}
     
-    function onReceiveRoute(responseCode, data)
-    {	
-		var depTime = data["depTime"];
+    function parseReceivedData(data)
+    {
+    	var depTime = data["depTime"];
 			
 		var busLeavesAt = Calendar.moment({
 			:year => depTime.substring(0, 4).toNumber(),
@@ -154,6 +157,8 @@ class BusMonkeyModel
 		routeData.busLine = data["busLine"];
 		routeData.destinationName = data["destinationName"];
 		
+		routeData.validUntil = busLeavesAt.value() - routeData.walkTimeToStop;
+		
 		var directionToStop = data["directionToStop"];
 		var directionToWalk = directionToStop - heading;
         if(directionToWalk < 0)
@@ -166,12 +171,18 @@ class BusMonkeyModel
         
         routeData.currentDirection = heading;
         
-		viewCB.invoke(routeData);
+        return routeData;
     }
     
-    function reverseGeocode(lat, lon)
+    function onReceiveRoute(responseCode, data)
+    {	
+    	lastRouteData = parseReceivedData(data);
+		viewCB.invoke(lastRouteData);
+    }
+    
+    function fetchRoute(lat, lon)
     {
-     	Sys.println("reverseGeocode");
+     	Sys.println("fetchRoute");
      	viewCB.invoke(lat + "," + lon);
      	
      	var destination = "Kamppi"; //getProperty("destinations")[0];
@@ -180,6 +191,22 @@ class BusMonkeyModel
 		var url = Lang.format(Config.url, [lat, lon, destination, optimize]);
 		Sys.println(url);
 		makeRequest(url, method(:onReceiveRoute));
+    }
+    
+    function needNewRoute()
+    {
+    	if(lastRouteData == null)
+    	{
+    		return true;
+    	}
+    	if(lastRouteData.validUntil < Time.now().value())
+    	{
+    		return true;
+    	}
+    	//if position changed enought, return true
+    	
+    	
+    	return false;
     }
     
     function onPosition(data)
@@ -197,7 +224,16 @@ class BusMonkeyModel
         heading = 90 - (180/Math.PI) * data.heading;
         Sys.println("heading: " + heading);
         
-		reverseGeocode(latLon[0].toString(), latLon[1].toString());			
+        if(needNewRoute())
+        {
+        	Sys.println("need new route..");
+			fetchRoute(latLon[0].toString(), latLon[1].toString());
+		}
+		else
+		{
+			Sys.println("Using old route");
+			viewCB.invoke(lastRouteData);
+		}			
      }
      
     function onKey(key)
