@@ -17,13 +17,37 @@ class Route
 	var busLeavesIn;
 	var busCode;
 	var busLine;
-	var stopCoordX;
-	var stopCoordY;
-	var startCoordX;
-	var startCoordY;
-	var directionToStop;
-	var compassToStop;
+	//var stopCoordX;
+	//var stopCoordY;
+	//var startCoordX;
+	//var startCoordY;
 	var directionToWalk;
+	var currentDirection;
+}
+
+function calculateCompass(d)
+{
+	var c;
+    if(d < 22.5) {
+        c = "N"; }
+    else if(d < 67.5) {
+        c = "NE"; }
+    else if(d < 112.5) {
+        c = "E"; }
+    else if(d < 157.5) {
+        c = "SE"; }
+    else if(d < 202.5) {
+        c = "S"; }
+    else if(d < 247.5) {
+        c = "SW"; }
+    else if(d < 292.5) {
+        c = "W"; }
+    else if(d < 337.5) {
+        c = "NW"; }
+    else {
+        c = "N"; }
+        
+    return c;
 }
 
 class BusMonkeyModel
@@ -129,21 +153,18 @@ class BusMonkeyModel
 		routeData.busCode = data["busCode"];
 		routeData.busLine = data["busLine"];
 		routeData.destinationName = data["destinationName"];
-		//routeData.stopCoordX
-		//routeData.stopCoordY
-		//routeData.startCoordX
-		//routeData.startCoordY
-		routeData.directionToStop = data["directionToStop"];
-		routeData.compassToStop = data["compassToStop"];
 		
-		var directionToWalk = routeData.directionToStop - heading;
+		var directionToStop = data["directionToStop"];
+		var directionToWalk = directionToStop - heading;
         if(directionToWalk < 0)
         {
         	directionToWalk = 360 + directionToWalk;
         }
         routeData.directionToWalk = directionToWalk;
-        Sys.println("stopDir: " + routeData.directionToStop);
+        Sys.println("stopDir: " + directionToStop);
         Sys.println("walkdir: " + directionToWalk);
+        
+        routeData.currentDirection = heading;
         
 		viewCB.invoke(routeData);
     }
@@ -194,7 +215,8 @@ class BusMonkeyModel
 			routeData.busCode = "asdf";
 			routeData.busLine = "103T";
 			routeData.destinationName = "Kamppi";
-			routeData.compassToStop = "S";
+			routeData.directionToWalk = 100;
+			routeData.currentDirection = 222;
 			viewCB.invoke(routeData);
 			return true;
         }
@@ -246,18 +268,25 @@ class BusMonkeyView extends Ui.View {
 			dc.drawText(dc.getWidth()/2, dc.getHeight()/2, Graphics.FONT_LARGE, (displayData.busLeavesIn / 60).toString(), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 			
 			// compass
-			dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
-			dc.drawText(130, 170, Graphics.FONT_SMALL, displayData.compassToStop, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-			dc.drawCircle(165, 160, 20);
 			
-			dc.drawLine(165, 160, 165, 139); //straight up
+			var cx = 155;
+			var cy = 165;
+			var cr = 30;
+			var currentCompass = calculateCompass(displayData.currentDirection);
+			var walkCompass = calculateCompass(displayData.directionToWalk);
 
+			dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
+			dc.drawText(cx, cy - cr - 5, Graphics.FONT_TINY, currentCompass, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+			dc.drawCircle(cx, cy, cr);
+			
+			dc.drawLine(cx, cy, cx, cy - cr - 1); //straight up
+			
+			var endX = cx + (cr+1) * Math.sin(displayData.directionToWalk);
+			var endY = cy + (cr+1) * Math.cos(displayData.directionToWalk);			
 			dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
-			
-			var endX = 165 + 20 * Math.sin(displayData.directionToWalk);
-			var endY = 160 + 20 * Math.cos(displayData.directionToWalk);
-			
-			dc.drawLine(165, 160, endX, endY);
+			dc.drawLine(cx, cy, endX, endY); // heading to stop
+			dc.drawCircle(endX, endY, 2);
+			dc.drawText(endX, endY, Graphics.FONT_TINY, walkCompass, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 			
 		}
 		else
