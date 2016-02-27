@@ -17,6 +17,13 @@ class Route
 	var busLeavesIn;
 	var busCode;
 	var busLine;
+	var stopCoordX;
+	var stopCoordY;
+	var startCoordX;
+	var startCoordY;
+	var directionToStop;
+	var compassToStop;
+	var directionToWalk;
 }
 
 class BusMonkeyModel
@@ -24,6 +31,8 @@ class BusMonkeyModel
 	hidden var viewCB;
 	
 	hidden var latLon;
+	hidden var heading;
+	
 	hidden var sourceCoords;
 	
     function initialize(handler)
@@ -120,7 +129,22 @@ class BusMonkeyModel
 		routeData.busCode = data["busCode"];
 		routeData.busLine = data["busLine"];
 		routeData.destinationName = data["destinationName"];
+		//routeData.stopCoordX
+		//routeData.stopCoordY
+		//routeData.startCoordX
+		//routeData.startCoordY
+		routeData.directionToStop = data["directionToStop"];
+		routeData.compassToStop = data["compassToStop"];
 		
+		var directionToWalk = routeData.directionToStop - heading;
+        if(directionToWalk < 0)
+        {
+        	directionToWalk = 360 + directionToWalk;
+        }
+        routeData.directionToWalk = directionToWalk;
+        Sys.println("stopDir: " + routeData.directionToStop);
+        Sys.println("walkdir: " + directionToWalk);
+        
 		viewCB.invoke(routeData);
     }
     
@@ -130,8 +154,9 @@ class BusMonkeyModel
      	viewCB.invoke(lat + "," + lon);
      	
      	var destination = "Kamppi"; //getProperty("destinations")[0];
+     	var optimize = "fastest";
      	
-		var url = Lang.format(Config.url, [lat, lon, destination]);
+		var url = Lang.format(Config.url, [lat, lon, destination, optimize]);
 		Sys.println(url);
 		makeRequest(url, method(:onReceiveRoute));
     }
@@ -143,10 +168,14 @@ class BusMonkeyModel
         latLon = data.position.toDegrees();
 
 		//Sys.println(data.position.toGeoString());
-		Sys.println(data.position.toRadians()[0].toString());
-        Sys.println(latLon[0].toString());
-        Sys.println(latLon[1].toString());
-		
+		//Sys.println(data.position.toRadians()[0].toString());
+        Sys.println("lat: " + latLon[0].toString());
+        Sys.println("lon: " + latLon[1].toString());
+        
+        //Sys.println(data.heading);
+        heading = 90 - (180/Math.PI) * data.heading;
+        Sys.println("heading: " + heading);
+        
 		reverseGeocode(latLon[0].toString(), latLon[1].toString());			
      }
      
@@ -165,6 +194,7 @@ class BusMonkeyModel
 			routeData.busCode = "asdf";
 			routeData.busLine = "103T";
 			routeData.destinationName = "Kamppi";
+			routeData.compassToStop = "S";
 			viewCB.invoke(routeData);
 			return true;
         }
@@ -217,9 +247,17 @@ class BusMonkeyView extends Ui.View {
 			
 			// compass
 			dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
-			dc.drawText(130, 170, Graphics.FONT_SMALL, "NE", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+			dc.drawText(130, 170, Graphics.FONT_SMALL, displayData.compassToStop, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 			dc.drawCircle(165, 160, 20);
-			dc.drawLine(165, 160, 187, 148);
+			
+			dc.drawLine(165, 160, 165, 139); //straight up
+
+			dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+			
+			var endX = 165 + 20 * Math.sin(displayData.directionToWalk);
+			var endY = 160 + 20 * Math.cos(displayData.directionToWalk);
+			
+			dc.drawLine(165, 160, endX, endY);
 			
 		}
 		else
