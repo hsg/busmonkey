@@ -1,5 +1,6 @@
 using Toybox.System as Sys;
 using Config;
+using Tools;
 using Toybox.Position;
 using Toybox.Communications as Comm;
 using Toybox.Math as Math;
@@ -29,31 +30,6 @@ class BusMonkeyModel
 	{
 		Position.enableLocationEvents(LOCATION_DISABLE, null);
 	}
-    
-    function parseNumber(string)
- 	{
- 		if(string.substring(0, 1).equals("0"))
- 		{
- 			return string.substring(1, 2).toNumber();
- 		}
- 		else
- 		{
- 			return string.substring(0, 2).toNumber();
- 		}
- 	}
- 	
- 	function chopAtPoint(string)
- 	{
- 		var i = string.find(".");
- 		if( i == null)
- 		{
- 			return string;
- 		}
- 		else
- 		{
- 			return string.substring(0, i);
- 		}	
- 	}
  	
  	var attempt = 0;
  	var url;
@@ -102,10 +78,10 @@ class BusMonkeyModel
 			
 		var busLeavesAt = Calendar.moment({
 			:year => depTime.substring(0, 4).toNumber(),
-			:month => parseNumber(depTime.substring(4, 6)),
-			:day => parseNumber(depTime.substring(6, 8)),
-			:hour => parseNumber(depTime.substring(8, 10)),
-			:minute => parseNumber(depTime.substring(10, 12))});
+			:month => Tools.parseNumber(depTime.substring(4, 6)),
+			:day => Tools.parseNumber(depTime.substring(6, 8)),
+			:hour => Tools.parseNumber(depTime.substring(8, 10)),
+			:minute => Tools.parseNumber(depTime.substring(10, 12))});
 
 		Sys.println(Lang.format("TimeZoneOffset $1$", [Sys.getClockTime().timeZoneOffset.toString()]));
 		Sys.println(Lang.format("LeavesAt $1$", [depTime]));
@@ -120,7 +96,7 @@ class BusMonkeyModel
 		routeData.stopName = data["stopName"];
 		routeData.stopShortCode = data["stopShortCode"];
 		routeData.distanceToStop = data["distanceToStop"];
-		routeData.walkTimeToStop = chopAtPoint(data["walkTimeToStop"].toString()).toNumber();
+		routeData.walkTimeToStop = Tools.chopAtPoint(data["walkTimeToStop"].toString()).toNumber();
 		routeData.busCode = data["busCode"];
 		routeData.busLine = data["busLine"];
 		routeData.destinationName = data["destinationName"];

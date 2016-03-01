@@ -51,8 +51,6 @@ function calculateCompass(d)
     return c;
 }
 
-
-
 class BusMonkeyView extends Ui.View {
 
 	var displayData;
