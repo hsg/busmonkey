@@ -9,20 +9,18 @@ using Toybox.Time.Gregorian as Calendar;
 
 class BusMonkeyModel
 {
-	hidden var viewCB;
+	hidden var viewRedrawCB;
 	
 	hidden var latLon;
-	hidden var heading;
-	
-	hidden var sourceCoords;
-	
+	hidden var heading;	
+	hidden var sourceCoords;	
 	hidden var lastRouteData;
 	
-    function initialize(handler)
+    function initialize(viewRedrawCallback)
     {
     	Sys.println("Waiting for GPS");
-    	viewCB = handler;
-		viewCB.invoke("Waiting for GPS");
+    	viewRedrawCB = viewRedrawCallback;
+		viewRedrawCB.invoke("Waiting for GPS");
 		Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
     }
     
@@ -44,7 +42,7 @@ class BusMonkeyModel
  		}
  		else if(responseCode == -104)
  		{
- 			viewCB.invoke("Bluetooth/nunavailable");
+ 			viewRedrawCB.invoke("Bluetooth/nunavailable");
  			stopProgram();
  		}
  		else if(attempt < 5)
@@ -52,14 +50,14 @@ class BusMonkeyModel
  			Sys.println(data);
  			Sys.println(responseCode);
  			var s = Lang.format("$1$ received\nCode $2$\n$3$\nRetrying..", [data, responseCode, ""]);
- 			viewCB.invoke(s);
+ 			viewRedrawCB.invoke(s);
  			attempt++;
  			makeRequest(url, callback);
  		}
  		else
  		{
  			var s = Lang.format("$1$ received\nCode $2$\n$3$\nFailed.", [data, responseCode, ""]);
- 			viewCB.invoke(s);
+ 			viewRedrawCB.invoke(s);
  			attempt = 0;
  			stopProgram();
  		}
@@ -121,13 +119,13 @@ class BusMonkeyModel
     function onReceiveRoute(responseCode, data)
     {	
     	lastRouteData = parseReceivedData(data);
-		viewCB.invoke(lastRouteData);
+		viewRedrawCB.invoke(lastRouteData);
     }
     
     function fetchRoute(lat, lon)
     {
      	Sys.println("fetchRoute");
-     	viewCB.invoke(lat + "," + lon);
+     	viewRedrawCB.invoke(lat + "," + lon);
      	
      	var destination = "Kamppi"; //getProperty("destinations")[0];
      	var optimize = "fastest";
@@ -176,31 +174,23 @@ class BusMonkeyModel
 		else
 		{
 			Sys.println("Using old route");
-			viewCB.invoke(lastRouteData);
+			viewRedrawCB.invoke(lastRouteData);
 		}			
      }
      
-    function onKey(key)
+    function showDemoScreen()
     {
-    	Sys.println("onKey");
-    	if(key == Ui.KEY_ENTER)
-    	{
-    		Sys.println("key_enter");
-    		var routeData = new Route();
-        	routeData.stopName = "Maarinniitty";
-			routeData.stopShortCode = "E2072";
-			routeData.distanceToStop = "253";
-			routeData.walkTimeToStop = 180;
-			routeData.busLeavesIn = 18 * 60;
-			routeData.busCode = "asdf";
-			routeData.busLine = "103T";
-			routeData.destinationName = "Kamppi";
-			routeData.directionToWalk = 100;
-			routeData.currentDirection = 222;
-			viewCB.invoke(routeData);
-			return true;
-        }
-        
-        return false;
+		var routeData = new Route();
+    	routeData.stopName = "Maarinniitty";
+		routeData.stopShortCode = "E2072";
+		routeData.distanceToStop = "253";
+		routeData.walkTimeToStop = 180;
+		routeData.busLeavesIn = 18 * 60;
+		routeData.busCode = "asdf";
+		routeData.busLine = "103T";
+		routeData.destinationName = "Kamppi";
+		routeData.directionToWalk = 100;
+		routeData.currentDirection = 222;
+		viewRedrawCB.invoke(routeData);
     }
 }

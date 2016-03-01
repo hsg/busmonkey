@@ -126,10 +126,10 @@ class BusMonkeyView extends Ui.View {
     function onHide() {
     }
     
-    function onStuff(stuff)
+    function redraw(content)
     {
-        System.println("onStuff");
-        displayData = stuff;
+        System.println("redraw");
+        displayData = content;
         Ui.requestUpdate();
         
     }

@@ -7,14 +7,14 @@ class busmonkeyApp extends App.AppBase {
 
 	hidden var view;
 	hidden var model;
-	hidden var inputs;
+	hidden var inputHandler;
 	
     //! onStart() is called on application start up
     function onStart() {
     
     	view = new BusMonkeyView();    	
-        model = new BusMonkeyModel(view.method(:onStuff));
-        inputs = new Inputs(method(:onKey), model.method(:onKey));
+        model = new BusMonkeyModel(view.method(:redraw));
+        inputHandler = new Inputs(method(:onKey));
         
         //if not destinations type of dictionary, create new.
 		var dest = getProperty("destinations");
@@ -30,7 +30,7 @@ class busmonkeyApp extends App.AppBase {
 
     //! Return the initial view of your application here
     function getInitialView() {
-        return [view, inputs];
+        return [view, inputHandler];
     }
     
     function onKey(key)
@@ -40,6 +40,15 @@ class busmonkeyApp extends App.AppBase {
         	openMenu();
         	return true;
         } 
+        else
+        {
+	        if(key == Ui.KEY_DOWN)
+	    	{
+        		model.showDemoScreen();
+        		return true;
+        	}
+        }
+        
         return false;
     }
     
