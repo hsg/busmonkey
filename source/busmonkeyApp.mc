@@ -14,7 +14,7 @@ class busmonkeyApp extends App.AppBase {
     
     	view = new BusMonkeyView();    	
         model = new BusMonkeyModel(view.method(:redraw));
-        inputHandler = new Inputs(method(:onKey));
+        inputHandler = new InputHandler(method(:onKey));
         
         //if not destinations type of dictionary, create new.
 		var dest = getProperty("destinations");

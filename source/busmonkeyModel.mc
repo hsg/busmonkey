@@ -14,13 +14,13 @@ class BusMonkeyModel
 	hidden var latLon;
 	hidden var heading;	
 	hidden var sourceCoords;	
-	hidden var lastRouteData;
+	hidden var lastRouteData = new Route();
 	
     function initialize(viewRedrawCallback)
     {
     	Sys.println("Waiting for GPS");
     	viewRedrawCB = viewRedrawCallback;
-		viewRedrawCB.invoke("Waiting for GPS");
+		viewRedrawCB.invoke(lastRouteData);
 		Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
     }
     
@@ -137,7 +137,7 @@ class BusMonkeyModel
     
     function needNewRoute()
     {
-    	if(lastRouteData == null)
+    	if(lastRouteData == null || lastRouteData.validUntil == null)
     	{
     		return true;
     	}

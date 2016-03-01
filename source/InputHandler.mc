@@ -1,7 +1,7 @@
 using Toybox.WatchUi as Ui;
 using Toybox.System as Sys;
 
-class Inputs extends Ui.InputDelegate
+class InputHandler extends Ui.InputDelegate
 {
 	var keyCB;
 	
