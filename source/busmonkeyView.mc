@@ -70,6 +70,11 @@ class BusMonkeyModel
 		Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
     }
     
+    function stopProgram()
+	{
+		Position.enableLocationEvents(LOCATION_DISABLE, null);
+	}
+    
     function parseNumber(string)
  	{
  		if(string.substring(0, 1).equals("0"))
@@ -106,18 +111,26 @@ class BusMonkeyModel
  			attempt = 0;
  			onReceiveRoute(responseCode, data);
  		}
+ 		else if(responseCode == -104)
+ 		{
+ 			viewCB.invoke("Bluetooth/nunavailable");
+ 			stopProgram();
+ 		}
  		else if(attempt < 5)
  		{
- 			var s = Lang.format("$1$ received\nCode $2$\n$3$\nRetrying..", [data, responseCode, message]);
+ 			Sys.println(data);
+ 			Sys.println(responseCode);
+ 			var s = Lang.format("$1$ received\nCode $2$\n$3$\nRetrying..", [data, responseCode, ""]);
  			viewCB.invoke(s);
  			attempt++;
  			makeRequest(url, callback);
  		}
  		else
  		{
- 			var s = Lang.format("$1$ received\nCode $2$\n$3$\nFailed.", [data, responseCode, message]);
+ 			var s = Lang.format("$1$ received\nCode $2$\n$3$\nFailed.", [data, responseCode, ""]);
  			viewCB.invoke(s);
  			attempt = 0;
+ 			stopProgram();
  		}
  	}
  	
